@@ -6,7 +6,7 @@ import torch
 
 class ConvLSTMCell(nn.Module):
 
-    def __init__(self, input_size, input_dim, hidden_dim, kernel_size, bias):
+    def __init__(self, input_size, input_dim, hidden_dim, kernel_size, bias, device):
         """
         Initialize ConvLSTM cell.
         
@@ -40,6 +40,8 @@ class ConvLSTMCell(nn.Module):
                               padding=self.padding,
                               bias=self.bias)
 
+        self.device = device
+
     def forward(self, input_tensor, cur_state):
         
         h_cur, c_cur = cur_state
@@ -59,14 +61,14 @@ class ConvLSTMCell(nn.Module):
         return h_next, c_next
 
     def init_hidden(self, batch_size):
-        return (torch.zeros(batch_size, self.hidden_dim, self.height, self.width),
-                torch.zeros(batch_size, self.hidden_dim, self.height, self.width))
+        return (torch.zeros(batch_size, self.hidden_dim, self.height, self.width).to(self.device),
+                torch.zeros(batch_size, self.hidden_dim, self.height, self.width).to(self.device))
 
 
 class ConvLSTM(nn.Module):
 
     def __init__(self, input_size, input_dim, hidden_dim, kernel_size, num_layers,
-                 batch_first=False, bias=True, return_all_layers=False):
+                 batch_first=False, bias=True, return_all_layers=False, device=torch.device('cuda')):
         super(ConvLSTM, self).__init__()
 
         self._check_kernel_size_consistency(kernel_size)
@@ -95,7 +97,8 @@ class ConvLSTM(nn.Module):
                                           input_dim=cur_input_dim,
                                           hidden_dim=self.hidden_dim[i],
                                           kernel_size=self.kernel_size[i],
-                                          bias=self.bias))
+                                          bias=self.bias,
+                                          device=device))
 
         self.cell_list = nn.ModuleList(cell_list)
 
@@ -116,6 +119,7 @@ class ConvLSTM(nn.Module):
         if not self.batch_first:
             # (t, b, c, h, w) -> (b, t, c, h, w)
             input_tensor = input_tensor.permute(1, 0, 2, 3, 4)
+
 
         # Implement stateful ConvLSTM
         if hidden_state is not None:

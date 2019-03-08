@@ -6,8 +6,13 @@ from models.ConvLSTM import ConvLSTM
 
 
 class SweatyNet3(nn.Module):
-    def __init__(self, device):
+    def __init__(self, input_size, device, use_ConvLSTM=False, seq_len=2):
         super(SweatyNet3, self).__init__()
+        self.height, self.width, self.channels = input_size
+        self.out_height, self.out_width = int(self.height/4), int(self.width/4)
+        self.use_ConvLSTM = use_ConvLSTM
+        self.device = device
+        self.seq_len = seq_len
         self.seq1 = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=8, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(8),
@@ -86,17 +91,23 @@ class SweatyNet3(nn.Module):
             nn.BatchNorm2d(1),
             nn.ReLU(),
         )
-        # self.conv_lstm = ConvLSTM(input_size=(128, 160),
-        #                         input_dim=1,
-        #                         hidden_dim=[128, 160, 1],
-        #                         kernel_size=(3, 3),
-        #                         num_layers=3,
-        #                         batch_first=False,
-        #                         bias=True,
-        #                         return_all_layers=False,
-        #                         device=device)
+        # Add Conv LSTM layer if flag is True
+        if self.use_ConvLSTM:
+            self.conv_lstm = ConvLSTM(input_size=(self.out_height, self.out_width),
+                                    input_dim=1,
+                                    hidden_dim=[32, 16, 1],
+                                    kernel_size=(3, 3),
+                                    num_layers=3,
+                                    batch_first=True,
+                                    bias=True,
+                                    return_all_layers=False,
+                                    device=device)
+            self.seq8 = nn.Sequential(
+                nn.BatchNorm2d(1),
+                nn.ReLU()
+            )
 
-    def forward(self, input):
+    def forward(self, input, prev_frame):
         seq1_out = self.seq1(input)
         down_sample1 = self.maxpool1(seq1_out)
         seq2_out = self.seq2(down_sample1)
@@ -110,8 +121,29 @@ class SweatyNet3(nn.Module):
         up_sample1 = F.interpolate(seq5_out, scale_factor=2, mode='bilinear', align_corners=True)
         seq6_out = self.seq6(torch.cat((up_sample1, skip2), dim=1))
         up_sample2 = F.interpolate(seq6_out, scale_factor=2, mode='bilinear', align_corners=True)
-        output = self.seq7(torch.cat((up_sample2, skip1), dim=1))
-        # layer_output_list, _ = self.conv_lstm(output[None, ...])
-        # layer_output = layer_output_list[0].reshape(output.shape)
-        # return output, layer_output
-        return output
+        seq7_out = self.seq7(torch.cat((up_sample2, skip1), dim=1))
+        conv_lstm_in = None
+        if self.use_ConvLSTM:
+            for idx in range(seq7_out.shape[0]):
+                # Create sequence of frames
+                if prev_frame is None:
+                    seq_conv_lstm = seq7_out[idx][None, ...]
+                    # For very first frame in epoch just copy it as per sequence length
+                    seq_conv_lstm = seq_conv_lstm.repeat((self.seq_len, 1, 1, 1))
+                else:
+                    seq_conv_lstm = torch.cat((prev_frame[1:], seq7_out[idx][None, ...]))
+                
+                if conv_lstm_in is None:
+                    conv_lstm_in = seq_conv_lstm[None, ...]
+                else:                    
+                    conv_lstm_in = torch.cat((conv_lstm_in, seq_conv_lstm[None, ...]))                    
+            conv_lstm_list, _ = self.conv_lstm(conv_lstm_in)
+            conv_lstm_out = conv_lstm_list[0][:, -1, :, :]
+            seq8_out = self.seq8(conv_lstm_out)
+            output = seq8_out
+        else:
+            output = seq7_out
+        if self.use_ConvLSTM:
+            return output, seq_conv_lstm
+        else:
+            return output, None
