@@ -31,6 +31,11 @@ To see list of all available arguments:<br/>
 Dataset files can be placed anywhere but please make sure that the annotation file is in csv format and the column order is as *annotation_type, filename, x1, y1, x2, y2, center_x, center_y, width, height*. <br/>
 Trained models and sample output files are present in the output directory.
 
+## Results
+
+Sample from testing on an un-annoted dataset
+
+![Original Image with detected Bounding Box(Left) and Predicted Heat-map (Right)](./output/media/result.png)
 
 ## License
 
