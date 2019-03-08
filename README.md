@@ -11,26 +11,24 @@ git clone https://github.com/tridivb/Soccer_Ball_Detector_with_FCNN_and_ConvLSTM
 
 ### Prerequisites
 
-[Python 3.x](https://www.python.org/downloads/)
-[Pytorch 0.4.1](https://pytorch.org/get-started/previous-versions/)
-[Visdom](https://github.com/facebookresearch/visdom)
-[OpenCV 3.x](https://opencv.org/releases.html)
-[Pandas](https://pandas.pydata.org/)
-[ImageIo](https://pypi.org/project/imageio/)
-Numpy
+[Python 3.x](https://www.python.org/downloads/)<br/>
+[Pytorch 0.4.1](https://pytorch.org/get-started/previous-versions/)<br/>
+[Visdom](https://github.com/facebookresearch/visdom)<br/>
+[OpenCV 3.x](https://opencv.org/releases.html)<br/>
+[Pandas](https://pandas.pydata.org/)<br/>
+[ImageIo](https://pypi.org/project/imageio/)<br/>
+Numpy<br/>
 PIL
 
 ## Running the code
 
-Run it from the command line using the following
-Example Usage: 
-```python main.py --model 1 --niter 1```
-
-To see list of all available arguments:
-```python main.py --model```
-
-Dataset files can be placed anywhere but please make sure that the annotation file is in
-csv format and the column order is as *annotation_type, filename, x1, y1, x2, y2, center_x, center_y, width, height*
+Run it from the command line using the following: <br/> 
+```python main.py --model 1 --niter 1```<br/>
+<br/>
+To see list of all available arguments:<br/>
+```python main.py --model```<br/>
+<br/>
+Dataset files can be placed anywhere but please make sure that the annotation file is in csv format and the column order is as *annotation_type, filename, x1, y1, x2, y2, center_x, center_y, width, height*. <br/>
 Trained models and sample output files are present in the output directory.
 
 
