@@ -1,4 +1,4 @@
-# Project Title
+# Soccer Ball Detector with Feedforward Fully Convolutional NeuralNetworks (FCNN)  and Convolutional LSTM
 
 Unofficial implementation of the paper [Detection and Localization of Features on a SoccerField with Feedforward Fully Convolutional NeuralNetworks (FCNN) for the Adult-Size HumanoidRobot Sweaty](http://lofarolabs.com/events/robocup/ws17/papers/Humanoids_RoboCup_Workshop_2017_pape_4.pdf). Despite the ability of FCNNs to capture spatial data, they lack the ability to learn temporal patterns. Convolutional LSTM or Convolutional GRU models have provided solutions for this by retaining information from frames over multiple time steps to draw an inference. A ConvLSTM module is therefore added to the SweatyNet model to predict frames where it fails to detect a ball. The ideas are inspired from [Convolutional Gated Recurrent Networks for Video Segmentation](https://arxiv.org/pdf/1611.05435.pdf).
 
